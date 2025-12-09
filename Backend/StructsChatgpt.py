@@ -2,7 +2,7 @@ import json
 
 class Encabezado:
     def __init__(self, prompt):
-        self.model = "o4-mini-2025-04-16"
+        self.model = "gpt-5-nano-2025-08-07"
         self.prompt = prompt
         self.max_tokens = 600
         self.temperature = 0.5
