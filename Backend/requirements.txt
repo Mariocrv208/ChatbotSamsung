@@ -1,0 +1,7 @@
+openai
+python-dotenv
+chromadb
+quart
+nest_asyncio
+numpy
+uvicorn
