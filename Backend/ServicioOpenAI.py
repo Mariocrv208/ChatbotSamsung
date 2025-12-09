@@ -7,10 +7,12 @@ import numpy as np
 import asyncio
 from ChromaService import ChromaService
 from logica import crear_mensajes
+from quart_cors import cors 
 
 from chromadb import PersistentClient
 
 app = Quart(__name__)
+app = cors(app, allow_origin="*") 
 
 # Inicializar servicios de Chroma
 chroma_service = ChromaService()
@@ -28,8 +30,7 @@ async def openai_service():
             return jsonify({"error": "Falta el campo 'mensaje'"}), 400
 
         # Buscar en Chroma
-        collection = chroma_service.get_or_create_collection(name="SamsungDemo")
-        print(collection)
+        collection = chroma_service.get_or_create_collection(name="SamsungDemo2")
 
         resultado_chroma = collection.query(
             query_texts=[mensaje],
@@ -54,10 +55,10 @@ async def openai_service():
 @app.route("/conteo", methods=["GET"])
 async def conteo():
     try:
-        collection = chroma_service.get_or_create_collection(name="SamsungDemo")
+        collection = chroma_service.get_or_create_collection(name="SamsungDemo2")
         cantidad = collection.count()
 
-        return jsonify({"coleccion": "SamsungDemo", "conteo": cantidad}), 200
+        return jsonify({"coleccion": "SamsungDemo2", "conteo": cantidad}), 200
 
     except Exception as e:
         return jsonify({"error": str(e), "mensaje": "No se pudo obtener el conteo."}), 500
@@ -66,18 +67,31 @@ async def conteo():
 @app.route("/vista_previa", methods=["GET"])
 async def vista_previa():
     try:
-        collection = chroma_service.get_or_create_collection(name="SamsungDemo")
+        collection = chroma_service.get_or_create_collection(name="SamsungDemo2")
         peeked = collection.peek()
 
+        # --- LIMPIAR METADATOS QUE ROMPEN EL JSON ---
+        metas = peeked.get("metadatas", [])
+        metas_limpios = []
+
+        for m in metas:
+            if isinstance(m, dict):
+                # eliminar claves internas como _type, _id, _namespace
+                m_limpio = {k: v for k, v in m.items() if not k.startswith("_")}
+                metas_limpios.append(m_limpio)
+            else:
+                metas_limpios.append({})
+
+        # Convertir embeddings a lista normal (numpy arrays fallan)
         if "embeddings" in peeked:
             peeked["embeddings"] = [e.tolist() for e in peeked["embeddings"]]
 
         return jsonify({
-            "coleccion": "SamsungDemo",
+            "coleccion": "SamsungDemo2",
             "items": {
                 "ids": peeked.get("ids", []),
                 "documents": peeked.get("documents", []),
-                "metadatas": peeked.get("metadatas", []),
+                "metadatas": metas_limpios,
                 "embeddings": peeked.get("embeddings", [])
             }
         })
@@ -86,14 +100,15 @@ async def vista_previa():
         return jsonify({"error": str(e), "mensaje": "No se pudo obtener vista previa."}), 500
 
 
+
 @app.route("/documents", methods=["GET"])
 async def obtener_documents():
     try:
-        collection = chroma_service.get_or_create_collection(name="SamsungDemo")
+        collection = chroma_service.get_or_create_collection(name="SamsungDemo2")
         peeked = collection.peek()
 
         return jsonify({
-            "coleccion": "SamsungDemo",
+            "coleccion": "SamsungDemo2",
             "documents": peeked.get("documents", [])
         })
 

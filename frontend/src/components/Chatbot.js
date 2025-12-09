@@ -19,13 +19,32 @@ export default function Chatbot() {
     }
   }, [messages, loading]);
 
-  // Simulated backend response (mock). Replace this with fetch() to your API.
+  // Llamada real al backend Samsung Chatbot
   const fetchBotReplyMock = async (userText) => {
-    // Simula latencia y produce una respuesta simple
-    await new Promise(res => setTimeout(res, 700 + Math.random() * 700));
-    // Respuesta simple: espejo + frase
-    return `Has dicho: "${userText}". Esta es una respuesta de ejemplo.`;
+    try {
+      
+      const response = await fetch("http://localhost:5001/openAIservice", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mensaje: userText }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error del servidor: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Tu backend devuelve => { respuesta: "texto..." }
+      return data.respuesta || "El servidor no envió una respuesta válida.";
+    } catch (error) {
+      console.error("Error llamando al backend:", error);
+      return "No se pudo conectar con el servicio. Revisa que esté ejecutándose.";
+    }
   };
+
 
   // Enviar mensaje
   const handleSend = async () => {

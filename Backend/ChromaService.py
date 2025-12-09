@@ -4,7 +4,7 @@ class ChromaService:
     def __init__(self):
         self.client = chromadb.PersistentClient(path="./chroma_db")  # Guarda la BD localmente
 
-    def get_or_create_collection(self, name="SamsungDemo"):
+    def get_or_create_collection(self, name="SamsungDemo2"):
         return self.client.get_or_create_collection(name=name)
 
     def upsert_data(self, collection_name, doc_id, document):
@@ -12,7 +12,7 @@ class ChromaService:
         collection = self.get_or_create_collection(collection_name)
         collection.upsert(documents=[document], ids=[doc_id])
 
-    def query(self, query_text, collection_name="SamsungDemo", n_results=3):
+    def query(self, query_text, collection_name="SamsungDemo2", n_results=3):
         """Busca datos en ChromaDB usando el texto de consulta."""
         collection = self.get_or_create_collection(collection_name)
         
